@@ -2,6 +2,7 @@ from PySide2 import QtWidgets
 from PySide2 import QtCore
 from PySide2 import QtGui
 from ui import main
+import os
 
 # window class,
 class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
@@ -20,14 +21,14 @@ class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
         path = 'C:/Windows'
 
         # create file system model
-        fileSysModel = QtWidgets.QFileSystemModel()
-        fileSysModel.setRootPath(QtCore.QDir.rootPath())
+        self.fileSysModel = QtWidgets.QFileSystemModel()
+        self.fileSysModel.setRootPath(QtCore.QDir.rootPath())
 
         # set treeview model to new created file system model
-        self.treeView.setModel(fileSysModel)
+        self.treeView.setModel(self.fileSysModel)
 
         #limit the root to defined root
-        self.treeView.setRootIndex(fileSysModel.index(path))
+        self.treeView.setRootIndex(self.fileSysModel.index(path))
 
         #enable sort
         self.treeView.setSortingEnabled(True)
@@ -44,7 +45,11 @@ class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
         menu.exec_(cursor.pos())
 
     def open_file(self):
-        print ('open file functionclicked')
+        # get current file path
+        index = self.treeView.currentIndex()
+        fil_path = self.fileSysModel.filePath(index)
+        os.startfile(fil_path)
+        print (fil_path)
 
 if __name__=='__main__':
     # Qapplication , can have only 1 in the program
