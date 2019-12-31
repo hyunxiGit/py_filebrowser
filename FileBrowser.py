@@ -18,7 +18,7 @@ class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
         self.populate_treeView()
 
     def populate_treeView(self):
-        path = 'C:/Windows'
+        path = r'C:\MyGit\MayaTestScene'
 
         # create file system model
         self.fileSysModel = QtWidgets.QFileSystemModel()
@@ -37,8 +37,11 @@ class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def context_menu(self):
         menu = QtWidgets.QMenu()
-        openAction = menu.addAction("Open")
-        openAction.triggered.connect(self.open_file)
+        open_action = menu.addAction("Open in maya")
+        open_action.triggered.connect(lambda : self.maya_file_operation(open_file=True))
+
+        import_maya_action = menu.addAction("import to Maya")
+        import_maya_action.triggered.connect(lambda : self.maya_file_operation(reference=True))
 
         # menu position
         cursor = QtGui.QCursor()
@@ -50,6 +53,41 @@ class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
         fil_path = self.fileSysModel.filePath(index)
         os.startfile(fil_path)
         print (fil_path)
+
+    def maya_file_operation(self,reference = False, open_file = False):
+        print ('maya_file_operation')
+        import maya.cmds as cmds
+        index = self.treeView.currentIndex()
+        file_path = self.fileSysModel.filePath(index)
+        if reference :
+            cmds.file(file_path, reference = True, type ='mayaAscii' , groupReference = True)
+        elif open_file:
+            # cmds.file(file_path,reference = True, type = 'mayaAscii' , groupReference = True)
+            # get current file path
+            file_location = cmds.file(query=True, location=True)
+            # if current file is tmp file and not saved
+            if file_location == 'unknown':
+                cmds.file(file_path, open=True, force=True)
+            else:
+                # check if current file is modifies
+                modify_file = cmds.file(query=True, modified=True)
+                if modify_file:
+                    # if file changed create window with btns to save or not save
+                    # save the clicked yes/no tp result
+                    result = cmds.confirmDialog(title='Opening new maya file',
+                                                message='Current file is modified. Do you wan to save this file?',
+                                                button=['yes', 'no'], defaultButton='yes', cancelButton='no',
+                                                dismissString='no')
+                    if result == 'yes':
+                        # save file
+                        cmds.file(save=True, type='mayaAscii')
+                        # open the selected file
+                        cmds.file(file_path, open=True, force=True)
+                    else:
+                        cmds.file(file_path, open=True, force=True)
+                else:
+                    cmds.file(file_path, open=True, force=True)
+
 
 if __name__=='__main__':
     # Qapplication , can have only 1 in the program
