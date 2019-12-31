@@ -9,5 +9,5 @@ import FileBrowser
 reload(FileBrowser)
 
 # create the file browser
-fb = FileBrowser.MyQtApp()
+fb = FileBrowser.MyQtApp(True)
 fb.show()

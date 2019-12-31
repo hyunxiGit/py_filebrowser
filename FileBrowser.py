@@ -6,10 +6,13 @@ import os
 
 # window class,
 class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
-    def __init__(self):
+    #the inMaya variable in constructor to decide if the app is run as standalone or
+    # inside Maya. depends on environment, there will be different context menu option
+    def __init__(self,inMaya = False):
         # set up the window
         super(MyQtApp, self).__init__()
         self.setupUi(self)
+        self.inMaya = inMaya
 
         # use custom contex menu and set the custom context menu
         self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -37,11 +40,17 @@ class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def context_menu(self):
         menu = QtWidgets.QMenu()
-        open_action = menu.addAction("Open in maya")
-        open_action.triggered.connect(lambda : self.maya_file_operation(open_file=True))
 
-        import_maya_action = menu.addAction("import to Maya")
-        import_maya_action.triggered.connect(lambda : self.maya_file_operation(reference=True))
+        open_action = menu.addAction("Open File")
+        open_action.triggered.connect(self.open_file)
+
+        if (self.inMaya):
+
+            open_maya_action = menu.addAction("Open in maya")
+            open_maya_action.triggered.connect(lambda : self.maya_file_operation(open_file=True))
+
+            import_maya_action = menu.addAction("import to Maya")
+            import_maya_action.triggered.connect(lambda : self.maya_file_operation(reference=True))
 
         # menu position
         cursor = QtGui.QCursor()
@@ -60,8 +69,10 @@ class MyQtApp(main.Ui_MainWindow, QtWidgets.QMainWindow):
         index = self.treeView.currentIndex()
         file_path = self.fileSysModel.filePath(index)
         if reference :
+            print("reference")
             cmds.file(file_path, reference = True, type ='mayaAscii' , groupReference = True)
         elif open_file:
+            print ("open file")
             # cmds.file(file_path,reference = True, type = 'mayaAscii' , groupReference = True)
             # get current file path
             file_location = cmds.file(query=True, location=True)
